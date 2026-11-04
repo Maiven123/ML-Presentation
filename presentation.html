@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why Accuracy Lies: Precision vs Recall in Real Life</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              emerald: '#10B981',
+              cyan: '#06B6D4',
+              violet: '#8B5CF6',
+              rose: '#F43F5E',
+              dark: '#090D16',
+              card: 'rgba(17, 24, 39, 0.75)',
+            }
+          },
+          animation: {
+            'glow-pulse': 'glowPulse 4s ease-in-out infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            glowPulse: {
+              '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+              '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbars and Glassmorphism */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.5);
+    }
+    .glass-panel {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    }
+    .glass-card-interactive {
+      background: rgba(22, 30, 49, 0.75);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card-interactive:hover {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 12px 35px -10px rgba(14, 165, 233, 0.3);
+      transform: translateY(-2px);
+    }
+    .glow-bg {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-[#070A12] text-slate-100 font-sans min-h-screen overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+
+  <!-- Ambient Luxury Glow Lights -->
+  <div class="glow-bg w-[700px] h-[700px] -top-40 -left-40 bg-cyan-600/15 animate-glow-pulse"></div>
+  <div class="glow-bg w-[650px] h-[650px] -bottom-40 -right-40 bg-emerald-600/15 animate-glow-pulse" style="animation-delay: 2s;"></div>
+  <div class="glow-bg w-[500px] h-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500/10 animate-float"></div>
+
+  <!-- Main Wrapper -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+    
+    <!-- Top Navigation Bar -->
+    <header class="h-20 border-b border-white/10 glass-panel px-8 flex items-center justify-between sticky top-0 z-50">
+      <div class="flex items-center space-x-4">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-emerald-400 to-amber-300 flex items-center justify-center p-[1px] shadow-lg shadow-cyan-500/20">
+          <div class="w-full h-full bg-[#090D16] rounded-[15px] flex items-center justify-center">
+            <i data-lucide="brain-circuit" class="w-6 h-6 text-cyan-400"></i>
+          </div>
+        </div>
+        <div>
+          <span class="text-lg font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-emerald-300 to-amber-300">
+            Why Accuracy Lies
+          </span>
+          <p class="text-xs text-slate-400 font-semibold tracking-wide">Evaluation Metrics & Applied Machine Learning Diagnostics</p>
+        </div>
+      </div>
+
+      <!-- Quick Slide Navigation Dots -->
+      <div class="hidden md:flex items-center space-x-2" id="slide-indicators">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+      <!-- Right Actions: Export/Print & Fullscreen -->
+      <div class="flex items-center space-x-3">
+        <button onclick="window.print()" class="px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-cyan-500/10 text-xs font-bold text-slate-200 hover:text-cyan-300 transition-all flex items-center gap-2">
+          <i data-lucide="printer" class="w-4 h-4 text-cyan-400"></i>
+          <span class="hidden sm:inline">Export / Print</span>
+        </button>
+
+        <button id="fullscreen-btn" class="p-2.5 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-cyan-500/10 text-slate-200 hover:text-cyan-300 transition-all" title="Toggle Fullscreen">
+          <i data-lucide="maximize" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Slide Viewport Area -->
+    <main class="flex-1 flex flex-col justify-center items-center p-4 sm:p-8 max-w-7xl mx-auto w-full">
+      <div id="slide-container" class="w-full relative transition-all duration-500">
+        <!-- Slides rendered here -->
+      </div>
+    </main>
+
+    <!-- Bottom Control Bar -->
+    <footer class="h-20 border-t border-white/10 glass-panel px-8 flex items-center justify-between sticky bottom-0 z-50">
+      <div class="flex items-center gap-4">
+        <span class="text-sm font-mono text-cyan-400 font-bold px-3 py-1.5 rounded-lg bg-cyan-950/70 border border-cyan-800/50" id="slide-counter">
+          01 / 07
+        </span>
+        <span class="text-sm font-semibold text-slate-300 hidden sm:inline" id="slide-title-preview">Introduction & Hook</span>
+      </div>
+
+      <!-- Navigation Arrows -->
+      <div class="flex items-center gap-3">
+        <button id="prev-btn" class="px-5 py-2.5 rounded-xl border border-white/10 bg-slate-900/80 hover:bg-white/10 text-slate-200 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-2 text-sm font-bold">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Previous</span>
+        </button>
+        <button id="next-btn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-extrabold transition shadow-lg shadow-cyan-500/25 flex items-center gap-2 text-sm">
+          <span>Next Slide</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Keyboard Navigation Hint -->
+      <div class="hidden lg:flex items-center gap-2 text-xs text-slate-400 font-mono">
+        <span class="px-2 py-1 rounded bg-white/10 border border-white/10 text-slate-200">←</span>
+        <span class="px-2 py-1 rounded bg-white/10 border border-white/10 text-slate-200">→</span>
+        <span>navigate</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Exact User Uploaded QR Code SVG Image
+    const USER_QR_IMAGE = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37 37" shape-rendering="crispEdges"><rect width="37" height="37" fill="%23ffffff"/><path stroke="%23000000" stroke-width="1" d="M0 0.5h7m1 0h1m2 0h1m2 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m3 0h1m1 0h7M0 1.5h1m5 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m3 0h1m1 0h1m1 0h2m1 0h1m1 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h3m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h3m1 0h2m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m1 0h3m1 0h2m1 0h2m1 0h1m1 0h2m2 0h1m1 0h2m1 0h1m1 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m3 0h3m1 0h1m1 0h2m1 0h3m2 0h2m1 0h1m1 0h1m1 0h2M0 8.5h1m1 0h1m1 0h1m2 0h2m1 0h1m2 0h3m1 0h3m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h1M2 9.5h1m1 0h1m3 0h1m1 0h2m3 0h1m1 0h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1m1 0h1M0 10.5h1m1 0h1m1 0h1m1 0h3m1 0h2m1 0h2m1 0h2m1 0h1m1 0h1m2 0h1m2 0h2m1 0h1m2 0h1M0 11.5h2m2 0h1m1 0h1m2 0h1m1 0h2m1 0h1m2 0h1m1 0h1m2 0h1m2 0h2m1 0h1m2 0h1m1 0h1m1 0h1M1 12.5h1m1 0h3m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h1M0 13.5h1m3 0h1m1 0h3m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h2M0 14.5h2m1 0h2m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h2m2 0h1m2 0h1m1 0h1m1 0h2M1 15.5h2m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M0 16.5h1m1 0h2m1 0h2m2 0h1m1 0h2m1 0h2m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M2 17.5h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h2M0 18.5h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2M1 19.5h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1M0 20.5h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1M1 21.5h1m2 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1M0 22.5h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1M1 23.5h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1M0 24.5h2m1 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2M1 25.5h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1M1 26.5h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1M0 27.5h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2M1 28.5h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1M0 29.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M0 30.5h1m5 0h1m1 0h2m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m5 0h1M0 31.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 32.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 33.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 34.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1M0 35.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7"/></svg>`;
+
+    // Presentation Slide Content (Larger Fonts, Clean Layout, Single-Line Fraction Denominators)
+    const slides = [
+      {
+        id: "hook",
+        tag: "01 // THE CORE DILEMMA",
+        title: "Why Accuracy Lies",
+        subtitle: "The 99% Paradox & How Real-World Machine Learning Breaks",
+        content: `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div class="lg:col-span-7 space-y-7">
+              <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-bold tracking-wide uppercase">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i> Critical Engineering Trap
+              </div>
+              <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                "Our model scored <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-cyan-400 to-amber-300">99% Accuracy</span>,<br>so we are ready to deploy!"
+              </h1>
+              <p class="text-slate-200 text-lg sm:text-xl leading-relaxed font-normal">
+                In machine learning pipelines, high accuracy can be a lethal illusion. 
+                When real-world distributions are <strong class="text-cyan-300 font-semibold">imbalanced</strong>, a degenerate baseline model predicting everyone is negative achieves 99% accuracy while missing 100% of all critical events.
+              </p>
+              
+              <div class="grid grid-cols-3 gap-4 pt-3">
+                <div class="glass-card-interactive p-5 rounded-2xl border-l-4 border-l-rose-500">
+                  <div class="text-3xl font-black text-rose-400">99.0%</div>
+                  <div class="text-sm text-slate-300 font-semibold mt-1">Accuracy Claimed</div>
+                </div>
+                <div class="glass-card-interactive p-5 rounded-2xl border-l-4 border-l-amber-500">
+                  <div class="text-3xl font-black text-amber-400">0.0%</div>
+                  <div class="text-sm text-slate-300 font-semibold mt-1">Recall for Tumors</div>
+                </div>
+                <div class="glass-card-interactive p-5 rounded-2xl border-l-4 border-l-cyan-500">
+                  <div class="text-3xl font-black text-cyan-400">Catastrophic</div>
+                  <div class="text-sm text-slate-300 font-semibold mt-1">Production Impact</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5">
+              <div class="glass-panel p-7 rounded-3xl border border-white/10 relative overflow-hidden group">
+                <div class="absolute -right-12 -top-12 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition"></div>
+                <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
+                  <span class="text-sm font-mono uppercase text-slate-300 font-bold">Hospital Cohort: 1,000 Patients</span>
+                  <span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 font-bold">Heavily Imbalanced</span>
+                </div>
+                
+                <div class="space-y-3.5 font-mono text-sm">
+                  <div class="flex justify-between items-center p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 font-semibold">
+                    <span>Healthy Patients (Negative)</span>
+                    <span class="font-extrabold text-base">990 (99%)</span>
+                  </div>
+                  <div class="flex justify-between items-center p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 font-semibold">
+                    <span>Critical Patients (Positive)</span>
+                    <span class="font-extrabold text-base">10 (1%)</span>
+                  </div>
+                </div>
+
+                <div class="mt-6 p-5 rounded-2xl bg-slate-900/90 border border-cyan-500/30 text-sm text-slate-200 space-y-3">
+                  <div class="text-cyan-400 font-extrabold text-base flex items-center gap-2">
+                    <i data-lucide="cpu" class="w-5 h-5"></i> Degenerate Zero-Rule Model:
+                  </div>
+                  <div class="font-mono text-sm text-slate-200 bg-black/50 p-3.5 rounded-xl border border-white/10">
+                    <span class="text-cyan-400">def</span> <span class="text-amber-300">predict</span>(patient):<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-cyan-400">return</span> <span class="text-emerald-400">"Healthy"</span> <span class="text-slate-400"># Always Negative</span>
+                  </div>
+                  <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                    Correct on 990 out of 1,000 patients = <strong class="text-white font-bold">99% Accuracy</strong>, but yields an intolerable safety failure rate of 100% on sick patients.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "confusion-matrix",
+        tag: "02 // DIAGNOSTIC FRAMEWORK",
+        title: "The Confusion Matrix: The 4 Outcomes",
+        subtitle: "Grounding Machine Learning Decisions in Operational Reality",
+        content: `
+          <div class="space-y-7">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <p class="text-slate-200 text-base sm:text-lg max-w-3xl">
+                Every classification prediction exists within a 2x2 contingency grid comparing <strong>Ground Truth</strong> against <strong>Model Hypothesis</strong>.
+              </p>
+              <div class="flex items-center gap-3 text-sm font-mono text-slate-300 font-semibold">
+                <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 inline-block"></span> Correct Output
+                <span class="w-3.5 h-3.5 rounded-full bg-rose-400 inline-block ml-3"></span> Error Mode
+              </div>
+            </div>
+
+            <!-- The Matrix Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- True Positive -->
+              <div class="glass-card-interactive p-6 rounded-2xl border-l-4 border-l-emerald-400 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="text-sm font-mono font-black text-emerald-400 uppercase tracking-wider">TP • True Positive</span>
+                  <span class="text-xs px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-mono font-bold">Actual: + | Predicted: +</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-white mb-2">True Hit (Accurate Alarm)</h3>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">
+                  The model predicted positive, and ground truth confirmed positive.
+                </p>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-sm font-mono text-slate-200">
+                  🏥 Healthcare: Correctly identified a patient who genuinely has a tumor.
+                </div>
+              </div>
+
+              <!-- False Positive (Type I Error) -->
+              <div class="glass-card-interactive p-6 rounded-2xl border-l-4 border-l-amber-400 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="text-sm font-mono font-black text-amber-400 uppercase tracking-wider">FP • False Positive (Type I Error)</span>
+                  <span class="text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold">Actual: - | Predicted: +</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-white mb-2">False Alarm (Crying Wolf)</h3>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">
+                  The model predicted positive, but ground truth was negative.
+                </p>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-sm font-mono text-slate-200">
+                  📧 Email Systems: Flagging a critical job offer or contract as "Spam".
+                </div>
+              </div>
+
+              <!-- False Negative (Type II Error) -->
+              <div class="glass-card-interactive p-6 rounded-2xl border-l-4 border-l-rose-500 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="text-sm font-mono font-black text-rose-400 uppercase tracking-wider">FN • False Negative (Type II Error)</span>
+                  <span class="text-xs px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-300 font-mono font-bold">Actual: + | Predicted: -</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-white mb-2">Silent Failure (Deadly Blindspot)</h3>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">
+                  The model predicted negative, but the subject was actually positive!
+                </p>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-sm font-mono text-slate-200">
+                  ⚠️ Healthcare: Informing a sick patient they are clear; cancer advances unnoticed.
+                </div>
+              </div>
+
+              <!-- True Negative -->
+              <div class="glass-card-interactive p-6 rounded-2xl border-l-4 border-l-cyan-400 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="text-sm font-mono font-black text-cyan-400 uppercase tracking-wider">TN • True Negative</span>
+                  <span class="text-xs px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 font-mono font-bold">Actual: - | Predicted: -</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-white mb-2">Quiet Reassurance</h3>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">
+                  The model accurately recognized a normal negative sample.
+                </p>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-sm font-mono text-slate-200">
+                  🛡️ Payments: Legitimate transaction processed seamlessly without friction.
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "interactive-metrics",
+        tag: "03 // METRIC ARCHITECTURE",
+        title: "Dissecting Classification Metrics",
+        subtitle: "Click below to inspect mathematical formulations and domain suitability",
+        content: `
+          <div class="space-y-7">
+            <!-- Selector Tabs -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-2 rounded-2xl bg-slate-900/80 border border-white/10" id="metrics-tab-buttons">
+              <button onclick="switchMetric('accuracy')" class="metric-tab-btn py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg" data-target="accuracy">
+                <i data-lucide="check-check" class="w-4 h-4"></i> Accuracy
+              </button>
+              <button onclick="switchMetric('precision')" class="metric-tab-btn py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-white/5" data-target="precision">
+                <i data-lucide="crosshair" class="w-4 h-4"></i> Precision
+              </button>
+              <button onclick="switchMetric('recall')" class="metric-tab-btn py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-white/5" data-target="recall">
+                <i data-lucide="search" class="w-4 h-4"></i> Recall (Sensitivity)
+              </button>
+              <button onclick="switchMetric('f1')" class="metric-tab-btn py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-white/5" data-target="f1">
+                <i data-lucide="scale" class="w-4 h-4"></i> F1-Score
+              </button>
+            </div>
+
+            <!-- Dynamic Card Content -->
+            <div id="metric-detail-card" class="glass-panel p-6 sm:p-9 rounded-3xl border border-white/10 transition-all">
+              <!-- Rendered via switchMetric() -->
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "live-simulator",
+        tag: "04 // REAL-TIME LABORATORY",
+        title: "Interactive Confusion Matrix Simulator",
+        subtitle: "Manipulate Matrix Counts to Observe Instant Metric Fluctuations",
+        content: `
+          <div class="space-y-7">
+            <!-- Scenario Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900/80 p-4 rounded-2xl border border-white/10">
+              <span class="text-sm font-mono text-cyan-400 uppercase font-bold flex items-center gap-2">
+                <i data-lucide="sliders" class="w-4 h-4"></i> Quick Benchmark Scenarios:
+              </span>
+              <div class="flex flex-wrap gap-2.5">
+                <button onclick="loadScenario('cancer')" class="scenario-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition">
+                  🏥 Rare Disease (99% Lie)
+                </button>
+                <button onclick="loadScenario('spam')" class="scenario-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/5 text-slate-200 border border-white/10 hover:bg-white/10 transition">
+                  📧 High-Precision Spam Filter
+                </button>
+                <button onclick="loadScenario('balanced')" class="scenario-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/5 text-slate-200 border border-white/10 hover:bg-white/10 transition">
+                  ⚖️ Balanced Fraud Benchmark
+                </button>
+              </div>
+            </div>
+
+            <!-- Simulator Matrix + Live Gauges -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-7 items-center">
+              <!-- Matrix Input Display -->
+              <div class="lg:col-span-7 glass-panel p-6 rounded-3xl border border-white/10 space-y-5">
+                <div class="text-xs sm:text-sm font-mono text-slate-300 flex justify-between font-semibold">
+                  <span>Input Confusion Matrix Counts:</span>
+                  <span class="text-amber-400 font-bold">Total Population: <span id="sim-total">1000</span></span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 text-center">
+                  <div class="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col items-center">
+                    <span class="text-xs sm:text-sm font-mono text-emerald-400 font-bold mb-1">True Positive (TP)</span>
+                    <input type="number" id="inp-tp" min="0" max="10000" value="0" oninput="recalcSimulator()" class="w-28 text-center font-black text-3xl bg-black/50 border border-emerald-500/50 rounded-xl text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 py-1.5">
+                    <span class="text-xs text-slate-400 mt-1.5 font-medium">Confirmed hits</span>
+                  </div>
+
+                  <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col items-center">
+                    <span class="text-xs sm:text-sm font-mono text-amber-400 font-bold mb-1">False Positive (FP)</span>
+                    <input type="number" id="inp-fp" min="0" max="10000" value="0" oninput="recalcSimulator()" class="w-28 text-center font-black text-3xl bg-black/50 border border-amber-500/50 rounded-xl text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 py-1.5">
+                    <span class="text-xs text-slate-400 mt-1.5 font-medium">False alarms</span>
+                  </div>
+
+                  <div class="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex flex-col items-center">
+                    <span class="text-xs sm:text-sm font-mono text-rose-400 font-bold mb-1">False Negative (FN)</span>
+                    <input type="number" id="inp-fn" min="0" max="10000" value="10" oninput="recalcSimulator()" class="w-28 text-center font-black text-3xl bg-black/50 border border-rose-500/50 rounded-xl text-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-400 py-1.5">
+                    <span class="text-xs text-slate-400 mt-1.5 font-medium">Missed detections</span>
+                  </div>
+
+                  <div class="p-5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex flex-col items-center">
+                    <span class="text-xs sm:text-sm font-mono text-cyan-400 font-bold mb-1">True Negative (TN)</span>
+                    <input type="number" id="inp-tn" min="0" max="10000" value="990" oninput="recalcSimulator()" class="w-28 text-center font-black text-3xl bg-black/50 border border-cyan-500/50 rounded-xl text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 py-1.5">
+                    <span class="text-xs text-slate-400 mt-1.5 font-medium">Confirmed negatives</span>
+                  </div>
+                </div>
+
+                <div id="sim-verdict-box" class="p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed font-sans font-medium">
+                  <!-- Dynamic verdict text -->
+                </div>
+              </div>
+
+              <!-- Computed Metric Bars -->
+              <div class="lg:col-span-5 space-y-5">
+                <div class="glass-panel p-6 rounded-3xl border border-white/10 space-y-5">
+                  <!-- Accuracy Bar -->
+                  <div>
+                    <div class="flex justify-between text-xs sm:text-sm font-mono mb-1.5 font-bold">
+                      <span class="text-slate-200">Accuracy (Overall)</span>
+                      <span id="res-accuracy" class="text-emerald-400 text-base">99.0%</span>
+                    </div>
+                    <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+                      <div id="bar-accuracy" class="h-full bg-emerald-500 transition-all duration-500" style="width: 99%"></div>
+                    </div>
+                  </div>
+
+                  <!-- Precision Bar -->
+                  <div>
+                    <div class="flex justify-between text-xs sm:text-sm font-mono mb-1.5 font-bold">
+                      <span class="text-slate-200">Precision (Reliability)</span>
+                      <span id="res-precision" class="text-cyan-400 text-base">0.0%</span>
+                    </div>
+                    <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+                      <div id="bar-precision" class="h-full bg-cyan-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                  </div>
+
+                  <!-- Recall Bar -->
+                  <div>
+                    <div class="flex justify-between text-xs sm:text-sm font-mono mb-1.5 font-bold">
+                      <span class="text-slate-200">Recall (Sensitivity)</span>
+                      <span id="res-recall" class="text-rose-400 text-base">0.0%</span>
+                    </div>
+                    <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+                      <div id="bar-recall" class="h-full bg-rose-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                  </div>
+
+                  <!-- F1-Score Bar -->
+                  <div>
+                    <div class="flex justify-between text-xs sm:text-sm font-mono mb-1.5 font-bold">
+                      <span class="text-slate-200">F1-Score (Harmonic Mean)</span>
+                      <span id="res-f1" class="text-amber-400 text-base">0.0%</span>
+                    </div>
+                    <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+                      <div id="bar-f1" class="h-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+                  💡 <strong class="text-cyan-300">Simulation Insight:</strong> Increasing False Negatives (FN) leaves Accuracy completely unchanged while crushing Recall and F1-Score to 0%.
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "student-metaphor",
+        tag: "05 // FOUNDATIONAL ANALOGY",
+        title: "Three Students & The Exam",
+        subtitle: "Connecting Metric Behavior to Bias, Variance, & Generalization",
+        content: `
+          <div class="space-y-7">
+            <p class="text-slate-200 text-base sm:text-lg max-w-4xl">
+              How do we know if our model is learning generalizable patterns rather than memorizing training artifacts? Consider the classic machine learning pedagogical metaphor: <strong>Three Students Preparing for an Exam</strong>.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Student 1 -->
+              <div class="glass-card-interactive p-6 rounded-3xl border-t-4 border-t-rose-500 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <span class="text-3xl">😴</span>
+                    <span class="text-xs px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold">Underfitting</span>
+                  </div>
+                  <h3 class="text-lg font-extrabold text-white mb-2">Student 1: Under-prepared</h3>
+                  <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+                    Barely studied and failed to understand core concepts. The algorithm is excessively simple (High Bias) to grasp the true data distribution.
+                  </p>
+                  <ul class="text-xs font-mono space-y-2 text-slate-300 bg-black/40 p-3 rounded-xl border border-white/5">
+                    <li>• Train Score: <strong class="text-rose-400">Low (45%)</strong></li>
+                    <li>• Test Score: <strong class="text-rose-400">Low (42%)</strong></li>
+                    <li>• State: High Bias / Underfit</li>
+                  </ul>
+                </div>
+                <div class="mt-5 pt-4 border-t border-white/10 text-xs text-slate-400 leading-relaxed">
+                  Engineering Remedy: Increase model capacity, engineer richer features, reduce regularization.
+                </div>
+              </div>
+
+              <!-- Student 2 -->
+              <div class="glass-card-interactive p-6 rounded-3xl border-t-4 border-t-amber-400 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <span class="text-3xl">🤖</span>
+                    <span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">Overfitting</span>
+                  </div>
+                  <h3 class="text-lg font-extrabold text-white mb-2">Student 2: The Memorizer</h3>
+                  <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+                    Memorized practice questions word-for-word. Achieves perfection on training data but completely fails on unseen examination queries.
+                  </p>
+                  <ul class="text-xs font-mono space-y-2 text-slate-300 bg-black/40 p-3 rounded-xl border border-white/5">
+                    <li>• Train Score: <strong class="text-emerald-400">100%</strong></li>
+                    <li>• Test Score: <strong class="text-rose-400">54%</strong></li>
+                    <li>• State: High Variance / Overfit</li>
+                  </ul>
+                </div>
+                <div class="mt-5 pt-4 border-t border-white/10 text-xs text-slate-400 leading-relaxed">
+                  Engineering Remedy: Apply L1/L2 weight decay, tree pruning, dropout, or augment training diversity.
+                </div>
+              </div>
+
+              <!-- Student 3 -->
+              <div class="glass-card-interactive p-6 rounded-3xl border-t-4 border-t-emerald-400 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <span class="text-3xl">🧠</span>
+                    <span class="text-xs px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold">Balanced Fit</span>
+                  </div>
+                  <h3 class="text-lg font-extrabold text-white mb-2">Student 3: The Generalizer</h3>
+                  <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+                    Learned fundamental physical rules and latent patterns. Generalizes robustly to both familiar practice tasks and novel evaluation questions.
+                  </p>
+                  <ul class="text-xs font-mono space-y-2 text-slate-300 bg-black/40 p-3 rounded-xl border border-white/5">
+                    <li>• Train Score: <strong class="text-emerald-400">High (93%)</strong></li>
+                    <li>• Test Score: <strong class="text-emerald-400">High (91%)</strong></li>
+                    <li>• State: Optimal Generalization</li>
+                  </ul>
+                </div>
+                <div class="mt-5 pt-4 border-t border-white/10 text-xs text-slate-400 leading-relaxed">
+                  Production Result: Minimal generalization gap, resilient across live inference distributions.
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "decision-guide",
+        tag: "06 // PRODUCTION PLAYBOOK",
+        title: "The Production Decision Matrix",
+        subtitle: "Objective Criteria for Metric Selection in Real Systems",
+        content: `
+          <div class="space-y-7">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- When Precision -->
+              <div class="glass-card-interactive p-7 rounded-3xl border-l-4 border-l-cyan-400 space-y-4">
+                <div class="flex items-center gap-2.5 text-cyan-400 font-extrabold text-base">
+                  <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                  <span>When Precision is Paramount</span>
+                </div>
+                <div class="text-xs font-mono text-slate-300 font-bold">Objective: Minimize False Positives (FP)</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                  Required whenever a false alarm inflicts an intolerable customer trust, legal, or monetary penalty.
+                </p>
+                <div class="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2.5 text-xs sm:text-sm">
+                  <div>
+                    <span class="text-white font-bold">• Email Spam Filtering:</span>
+                    <p class="text-slate-300 text-xs mt-0.5">Filtering a job offer or critical contract breaks user workflow.</p>
+                  </div>
+                  <div>
+                    <span class="text-white font-bold">• Automated Financial Trading:</span>
+                    <p class="text-slate-300 text-xs mt-0.5">False buys directly result in capital loss.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- When Recall -->
+              <div class="glass-card-interactive p-7 rounded-3xl border-l-4 border-l-rose-400 space-y-4">
+                <div class="flex items-center gap-2.5 text-rose-400 font-extrabold text-base">
+                  <i data-lucide="flame" class="w-6 h-6"></i>
+                  <span>When Recall is Paramount</span>
+                </div>
+                <div class="text-xs font-mono text-slate-300 font-bold">Objective: Minimize False Negatives (FN)</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                  Required whenever a missed positive event produces severe physical danger, death, or structural liability.
+                </p>
+                <div class="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2.5 text-xs sm:text-sm">
+                  <div>
+                    <span class="text-white font-bold">• Diagnostic Oncology:</span>
+                    <p class="text-slate-300 text-xs mt-0.5">Five false alarms are acceptable if it prevents missing one tumor.</p>
+                  </div>
+                  <div>
+                    <span class="text-white font-bold">• Airport Threat Screening:</span>
+                    <p class="text-slate-300 text-xs mt-0.5">Failing to detect a concealed threat has catastrophic results.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- When F1-Score -->
+              <div class="glass-card-interactive p-7 rounded-3xl border-l-4 border-l-amber-400 space-y-4">
+                <div class="flex items-center gap-2.5 text-amber-400 font-extrabold text-base">
+                  <i data-lucide="scale" class="w-6 h-6"></i>
+                  <span>When F1 / PR-AUC is Paramount</span>
+                </div>
+                <div class="text-xs font-mono text-slate-300 font-bold">Objective: Balance Both Under Imbalance</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                  Required in skewed data distributions where both false alarms and missed cases impose significant real-world costs.
+                </p>
+                <div class="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2.5 text-xs sm:text-sm">
+                  <div>
+                    <span class="text-white font-bold">• Credit Card Fraud:</span>
+                    <p class="text-slate-300 text-xs mt-0.5">Cannot freeze every card (FP), cannot let fraud pass (FN).</p>
+                  </div>
+                  <div>
+                    <span class="text-white font-bold">• Search Engine Retrieval:</span>
+                    <p class="text-slate-300 text-xs mt-0.5">Must maintain high precision while maintaining broad coverage.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Golden Rule Banner -->
+            <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-cyan-500/15 to-amber-500/15 border border-white/10 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <i data-lucide="check-circle" class="w-6 h-6 text-emerald-400 shrink-0"></i>
+                <div class="text-xs sm:text-sm text-slate-200">
+                  <strong class="text-white font-bold">Applied Machine Learning Axiom:</strong> Never report Accuracy in isolation unless class distribution is strictly balanced (~50/50). Align your metric with the real-world cost of error.
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "conclusion",
+        tag: "07 // CONCLUSION & DISCUSSION",
+        title: "Key Takeaways & Open Discussion",
+        subtitle: "Bridging Evaluation Metrics with Real-World System Reliability",
+        content: `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div class="lg:col-span-7 space-y-7">
+              <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs sm:text-sm font-bold">
+                <i data-lucide="award" class="w-4 h-4"></i> Executive Summary
+              </div>
+
+              <h2 class="text-3xl sm:text-5xl font-black text-white leading-tight">
+                "Accuracy is a vanity metric.<br>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-300">Cost-weighted diagnostics are sanity."</span>
+              </h2>
+
+              <div class="space-y-4 text-sm sm:text-base text-slate-200">
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <span class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">1</span>
+                  <span>Accuracy masks model breakdown in imbalanced settings because it treats all error classes as symmetric.</span>
+                </div>
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <span class="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm shrink-0">2</span>
+                  <span>Precision safeguards user experience and resource commitment; Recall safeguards safety and detection coverage.</span>
+                </div>
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">3</span>
+                  <span>The decision threshold can be continuously calibrated in production to shift between high-precision and high-recall regimes.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conclusion Card with QR Code -->
+            <div class="lg:col-span-5">
+              <div class="glass-panel p-7 rounded-3xl border border-white/10 text-center space-y-6">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-bold">
+                  <i data-lucide="scan-line" class="w-4 h-4"></i> Scan for Presentation & Notebook
+                </div>
+
+                <!-- Exact QR Code Container -->
+                <div class="flex justify-center my-3">
+                  <div class="p-3.5 bg-white rounded-3xl shadow-2xl shadow-cyan-500/30 border-2 border-cyan-400/60 inline-block transition hover:scale-105 duration-300">
+                    <img id="qr-code-img" src="${USER_QR_IMAGE}" alt="Presentation QR Code" class="w-52 h-52 object-contain rounded-xl" />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-xl font-extrabold text-white">Thank You for Your Time</h3>
+                  <p class="text-xs sm:text-sm text-slate-300 mt-1">Open for technical questions & architectural discussions.</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-black/50 border border-white/10 text-left text-xs sm:text-sm font-mono space-y-2 text-slate-300">
+                  <div class="text-cyan-400 font-bold">• Technical Deep-Dive Topics:</div>
+                  <div class="text-slate-300">→ ROC-AUC & Precision-Recall (PR) Curves</div>
+                  <div class="text-slate-300">→ Imbalance Strategies (SMOTE, Class Weights, Focal Loss)</div>
+                  <div class="text-slate-300">→ Threshold Calibration for Optimal Utility</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      }
+    ];
+
+    // State Variables
+    let currentSlide = 0;
+    let currentMetricTab = 'accuracy';
+
+    // Metrics Data for Interactive Tab with Single-Line Horizontal Fraction Denominators
+    const metricsData = {
+      accuracy: {
+        title: "Accuracy",
+        symbol: "Acc",
+        conceptQuestion: "Out of all predictions made, what percentage was universally correct?",
+        numerator: "TP + TN",
+        denominator: "TP + TN + FP + FN",
+        variables: [
+          { name: "TP (True Positives)", desc: "Correct positive identifications" },
+          { name: "TN (True Negatives)", desc: "Correct negative identifications" },
+          { name: "Total Population", desc: "Sum of all TP + TN + FP + FN" }
+        ],
+        whenToUse: "ONLY appropriate when datasets have balanced class frequencies (~50/50) and error penalties are symmetric.",
+        whenFails: "Completely collapses on imbalanced distributions (Fraud, Cyber Intrusions, Medical Diagnostics).",
+        costPerspective: "Treats false alarms and deadly missed events as mathematically indistinguishable."
+      },
+      precision: {
+        title: "Precision (Positive Predictive Value)",
+        symbol: "Prec",
+        conceptQuestion: "When the model sounds an alarm, how likely is it to be a real event?",
+        numerator: "TP",
+        denominator: "TP + FP",
+        variables: [
+          { name: "TP (True Positives)", desc: "Genuine positive instances correctly caught" },
+          { name: "FP (False Positives)", desc: "False alarms incorrectly flagged as positive" }
+        ],
+        whenToUse: "Crucial when the financial, reputational, or workflow cost of a False Alarm (FP) is high.",
+        whenFails: "If over-optimized, the model refuses to predict positive except under extreme certainty, missing many actual cases.",
+        costPerspective: "Focuses on Alarm Reliability: 'If I ring the bell, you can be confident there is a fire.'"
+      },
+      recall: {
+        title: "Recall (Sensitivity / True Positive Rate)",
+        symbol: "Rec",
+        conceptQuestion: "Out of all actual positive cases in reality, how many did we capture?",
+        numerator: "TP",
+        denominator: "TP + FN",
+        variables: [
+          { name: "TP (True Positives)", desc: "Positive cases successfully identified" },
+          { name: "FN (False Negatives)", desc: "Positive cases missed by the model" }
+        ],
+        whenToUse: "Essential when the consequence of a Missed Case (FN) is fatal, illegal, or catastrophic.",
+        whenFails: "If over-optimized, the model can simply classify all samples as positive, causing massive false alarm fatigue.",
+        costPerspective: "Focuses on Thoroughness: 'Leave no stone unturned; miss zero positive cases.'"
+      },
+      f1: {
+        title: "F1-Score (Harmonic Mean)",
+        symbol: "F1",
+        conceptQuestion: "How well does the model balance precision and recall without gaming either one?",
+        numerator: "2 × Precision × Recall",
+        denominator: "Precision + Recall",
+        variables: [
+          { name: "Precision & Recall", desc: "Harmonic mean forces both metrics to remain reasonably balanced" },
+          { name: "Harmonic Penalty", desc: "Severely penalizes models with one high and one near-zero score" }
+        ],
+        whenToUse: "The standard metric for imbalanced classification benchmarks where both FP and FN matter.",
+        whenFails: "Weights Precision and Recall symmetrically. If one error type is fundamentally more dangerous, use F-beta instead.",
+        costPerspective: "Non-linear penalty: If Precision is 100% but Recall drops to 0%, F1 is 0% (not 50%)."
+      }
+    };
+
+    // Initialize Presentation
+    function initPresentation() {
+      renderIndicators();
+      renderSlide(currentSlide);
+      setupEvents();
+    }
+
+    // Render Indicator Dots
+    function renderIndicators() {
+      const container = document.getElementById('slide-indicators');
+      container.innerHTML = slides.map((s, idx) => `
+        <button onclick="goToSlide(${idx})" class="h-2.5 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-9 bg-cyan-400' : 'w-2.5 bg-white/20 hover:bg-white/40'}" title="${s.title}"></button>
+      `).join('');
+    }
+
+    // Render Slide Content
+    function renderSlide(index) {
+      const slide = slides[index];
+      const container = document.getElementById('slide-container');
+
+      container.style.opacity = '0';
+      container.style.transform = 'translateY(10px)';
+
+      setTimeout(() => {
+        container.innerHTML = `
+          <div class="glass-panel rounded-3xl p-8 sm:p-12 border border-white/10 relative overflow-hidden shadow-2xl">
+            <!-- Header Tag -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-7 pb-5 border-b border-white/10">
+              <div>
+                <span class="text-xs sm:text-sm font-mono font-extrabold tracking-widest text-cyan-400 uppercase">${slide.tag}</span>
+                <h2 class="text-3xl sm:text-4xl font-black text-white mt-1">${slide.title}</h2>
+                <p class="text-sm sm:text-base text-slate-300 font-medium">${slide.subtitle}</p>
+              </div>
+              <div>
+                <span class="text-xs sm:text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 font-mono text-slate-200 font-bold">Slide ${index + 1} of ${slides.length}</span>
+              </div>
+            </div>
+
+            <!-- Slide Body -->
+            <div class="mt-4">
+              ${slide.content}
+            </div>
+          </div>
+        `;
+
+        renderIndicators();
+        document.getElementById('slide-counter').innerText = `${String(index + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+        document.getElementById('slide-title-preview').innerText = slide.title;
+        document.getElementById('prev-btn').disabled = index === 0;
+        document.getElementById('next-btn').innerHTML = index === slides.length - 1 
+          ? `<span>Completed</span><i data-lucide="check" class="w-4 h-4"></i>`
+          : `<span>Next Slide</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+
+        lucide.createIcons();
+        if (slide.id === 'interactive-metrics') {
+          switchMetric(currentMetricTab);
+        } else if (slide.id === 'live-simulator') {
+          recalcSimulator();
+        }
+
+        container.style.opacity = '1';
+        container.style.transform = 'translateY(0)';
+      }, 150);
+    }
+
+    function goToSlide(idx) {
+      if (idx >= 0 && idx < slides.length) {
+        currentSlide = idx;
+        renderSlide(currentSlide);
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        renderSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        renderSlide(currentSlide);
+      }
+    }
+
+    // Interactive Metric Switcher Logic (Single-line horizontal fraction denominator)
+    function switchMetric(metricKey) {
+      currentMetricTab = metricKey;
+      const data = metricsData[metricKey];
+      if (!data) return;
+
+      const buttons = document.querySelectorAll('.metric-tab-btn');
+      buttons.forEach(btn => {
+        const target = btn.getAttribute('data-target');
+        if (target === metricKey) {
+          btn.className = 'metric-tab-btn py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg';
+        } else {
+          btn.className = 'metric-tab-btn py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-white/5';
+        }
+      });
+
+      const container = document.getElementById('metric-detail-card');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div class="lg:col-span-6 space-y-5">
+            <div class="flex items-center gap-4">
+              <span class="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black text-lg border border-cyan-500/30">
+                ${data.symbol}
+              </span>
+              <div>
+                <h3 class="text-2xl font-black text-white">${data.title}</h3>
+                <p class="text-xs sm:text-sm text-slate-300 font-medium">${data.conceptQuestion}</p>
+              </div>
+            </div>
+
+            <!-- Mathematical Formula Display with Denominator on a SINGLE Horizontal Line -->
+            <div class="p-6 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row items-center justify-center gap-4 py-8 shadow-inner">
+              <div class="text-xl font-mono font-extrabold text-white">${data.title} = </div>
+              
+              <div class="inline-flex flex-col items-center justify-center font-mono">
+                <!-- Numerator -->
+                <div class="px-5 py-1 text-lg sm:text-xl font-black text-cyan-300 tracking-wide text-center">
+                  ${data.numerator}
+                </div>
+                <!-- Fraction Bar -->
+                <div class="w-full h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-amber-400 my-1 rounded-full"></div>
+                <!-- Single-Line Horizontal Denominator -->
+                <div class="px-5 py-1 text-lg sm:text-xl font-black text-emerald-300 tracking-wide text-center whitespace-nowrap">
+                  ${data.denominator}
+                </div>
+              </div>
+            </div>
+
+            <!-- Formula Variable Definitions -->
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2.5 text-xs sm:text-sm">
+              <span class="font-bold text-slate-200 flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-cyan-400">
+                <i data-lucide="info" class="w-4 h-4"></i> Variables Legend
+              </span>
+              <ul class="space-y-1.5 text-slate-300">
+                ${data.variables.map(v => `
+                  <li class="flex items-center justify-between border-b border-white/5 pb-1.5">
+                    <span class="font-mono text-cyan-300 font-bold">${v.name}</span>
+                    <span class="text-slate-300 text-xs">${v.desc}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <div class="p-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 space-y-2">
+              <div class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> When to Optimize For This Metric:
+              </div>
+              <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${data.whenToUse}</p>
+            </div>
+
+            <div class="p-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 space-y-2">
+              <div class="text-sm font-bold text-rose-400 flex items-center gap-2">
+                <i data-lucide="alert-octagon" class="w-4 h-4"></i> Critical Vulnerability:
+              </div>
+              <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${data.whenFails}</p>
+            </div>
+
+            <div class="p-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 space-y-2">
+              <div class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                <i data-lucide="compass" class="w-4 h-4"></i> Core Intuition:
+              </div>
+              <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${data.costPerspective}</p>
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // Live Simulator Scenarios
+    function loadScenario(type) {
+      if (type === 'cancer') {
+        document.getElementById('inp-tp').value = 0;
+        document.getElementById('inp-fp').value = 0;
+        document.getElementById('inp-fn').value = 10;
+        document.getElementById('inp-tn').value = 990;
+      } else if (type === 'spam') {
+        document.getElementById('inp-tp').value = 95;
+        document.getElementById('inp-fp').value = 2;
+        document.getElementById('inp-fn').value = 15;
+        document.getElementById('inp-tn').value = 888;
+      } else if (type === 'balanced') {
+        document.getElementById('inp-tp').value = 460;
+        document.getElementById('inp-fp').value = 40;
+        document.getElementById('inp-fn').value = 50;
+        document.getElementById('inp-tn').value = 450;
+      }
+      recalcSimulator();
+    }
+
+    // Simulator Calculation
+    function recalcSimulator() {
+      const tp = Math.max(0, parseFloat(document.getElementById('inp-tp')?.value) || 0);
+      const fp = Math.max(0, parseFloat(document.getElementById('inp-fp')?.value) || 0);
+      const fn = Math.max(0, parseFloat(document.getElementById('inp-fn')?.value) || 0);
+      const tn = Math.max(0, parseFloat(document.getElementById('inp-tn')?.value) || 0);
+
+      const total = tp + fp + fn + tn;
+      const simTotalEl = document.getElementById('sim-total');
+      if (simTotalEl) simTotalEl.innerText = total;
+
+      const acc = total > 0 ? ((tp + tn) / total) * 100 : 0;
+      const prec = (tp + fp) > 0 ? (tp / (tp + fp)) * 100 : 0;
+      const rec = (tp + fn) > 0 ? (tp / (tp + fn)) * 100 : 0;
+      const f1 = (prec + rec) > 0 ? (2 * (prec * rec) / (prec + rec)) : 0;
+
+      const setMetric = (id, val) => {
+        const textEl = document.getElementById(`res-${id}`);
+        const barEl = document.getElementById(`bar-${id}`);
+        if (textEl) textEl.innerText = `${val.toFixed(1)}%`;
+        if (barEl) barEl.style.width = `${Math.min(100, Math.max(0, val))}%`;
+      };
+
+      setMetric('accuracy', acc);
+      setMetric('precision', prec);
+      setMetric('recall', rec);
+      setMetric('f1', f1);
+
+      const verdictBox = document.getElementById('sim-verdict-box');
+      if (verdictBox) {
+        if (acc >= 95 && rec < 20) {
+          verdictBox.className = 'p-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 text-rose-200 text-xs sm:text-sm leading-relaxed font-medium';
+          verdictBox.innerHTML = `⚠️ <strong>ACCURACY ILLUSION TRIGGERED:</strong> Accuracy appears stellar at <span class="font-bold underline">${acc.toFixed(1)}%</span>, yet Recall is disastrously low at <span class="font-bold underline">${rec.toFixed(1)}%</span>. The model is letting virtually all positive cases slip through undetected.`;
+        } else if (prec > 90 && rec < 60) {
+          verdictBox.className = 'p-4 rounded-2xl border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 text-xs sm:text-sm leading-relaxed font-medium';
+          verdictBox.innerHTML = `🛡️ <strong>HIGH PRECISION CONFIGURATION:</strong> Minimal False Alarms (${fp} false positives). Best suited for applications like spam filtering or automated payment blocks.`;
+        } else if (rec > 90 && prec < 60) {
+          verdictBox.className = 'p-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 text-xs sm:text-sm leading-relaxed font-medium';
+          verdictBox.innerHTML = `🏥 <strong>HIGH RECALL CONFIGURATION:</strong> Catches nearly every actual positive case (${fn} missed cases). Optimal for healthcare diagnostics or airport threat screening.`;
+        } else {
+          verdictBox.className = 'p-4 rounded-2xl border border-white/10 bg-white/5 text-slate-200 text-xs sm:text-sm leading-relaxed font-medium';
+          verdictBox.innerHTML = `⚖️ Balanced distribution. F1-Score: <strong class="text-amber-400 font-bold">${f1.toFixed(1)}%</strong> reliably reflects holistic model capability across both classes.`;
+        }
+      }
+    }
+
+    // Setup Event Listeners
+    function setupEvents() {
+      document.getElementById('next-btn').addEventListener('click', nextSlide);
+      document.getElementById('prev-btn').addEventListener('click', prevSlide);
+
+      // Keyboard arrow keys
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+          prevSlide();
+        } else if (e.key === 'Home') {
+          goToSlide(0);
+        } else if (e.key === 'End') {
+          goToSlide(slides.length - 1);
+        }
+      });
+
+      // Fullscreen Toggle
+      const fsBtn = document.getElementById('fullscreen-btn');
+      fsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => {});
+        } else {
+          document.exitFullscreen();
+        }
+      });
+    }
+
+    // Launch App
+    window.addEventListener('DOMContentLoaded', initPresentation);
+  </script>
+</body>
+</html>
