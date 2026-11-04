@@ -1,5 +1,5 @@
-﻿# ML-Presentation
-✦ Overview
+﻿ ML-Presentation
+ Overview
 
 Imagine a model that is 99% accurate and still misses every single patient who is sick. This presentation explains why that happens and how to see through it.
 
@@ -8,7 +8,7 @@ It walks an audience from the confusion matrix to Precision, Recall and F1, lets
 Presenting soon? The final slide carries a QR code that joins a live Kahoot quiz. The PIN belongs to a running session, so start the quiz before you present.
 
 <br/>
-✦ The Seven Slides
+The Seven Slides
 	Slide	What it delivers
 01	Why Accuracy Lies	The "99% trap": a model that never predicts the rare class still scores high accuracy.
 02	The Confusion Matrix	The four outcomes (TP, FP, FN, TN) and what each one means in the real world.
@@ -18,7 +18,7 @@ Presenting soon? The final slide carries a QR code that joins a live Kahoot quiz
 06	The Production Decision Matrix	How to choose the right metric for a real system.
 07	Key Takeaways & Discussion	A closing summary, discussion prompts and the quiz QR code.
 <br/>
-✦ The Math
+ The Math
 text
 Accuracy   =  (TP + TN) / (TP + TN + FP + FN)
 
@@ -45,19 +45,19 @@ Optimize Recall
 Optimize Precision
 Use F1-Score or PR-AUC
 </details> <br/>
-✦ Interactive Simulator
+ Interactive Simulator
 
 Slide 04 lets the audience change TP, FP, FN and TN and see Accuracy, Precision, Recall and F1 update in real time, along with a plain-language verdict on what the numbers mean.
 
 Preset	What it demonstrates
-🩺 Rare Disease	TP=0, FP=0, FN=10, TN=990. Accuracy shows 99% while Recall and F1 collapse to 0%.
-📧 Spam Filter	Very high precision with lower recall: a few missed spam messages are acceptable if real mail is never blocked.
-⚖️ Balanced Dataset (50/50)	Precision and Recall both strong, so the metrics agree.
+ Rare Disease	TP=0, FP=0, FN=10, TN=990. Accuracy shows 99% while Recall and F1 collapse to 0%.
+ Spam Filter	Very high precision with lower recall: a few missed spam messages are acceptable if real mail is never blocked.
+ Balanced Dataset (50/50)	Precision and Recall both strong, so the metrics agree.
 
 When a scenario makes no positive predictions at all, Precision is displayed as N/A, because it is undefined rather than zero.
 
 <br/>
-✦ Quick Start
+ Quick Start
 
 Run it locally
 
@@ -73,7 +73,7 @@ Rename the file to index.html.
 Go to Settings → Pages, choose the main branch and the root folder, then save.
 Your deck goes live at https://maiven123.github.io/ML-Presentation/.
 <br/>
-✦ Controls
+Controls
 
 A clean stage with no header or footer, so navigation is by keyboard or touch.
 
@@ -88,7 +88,7 @@ Touch screens	Swipe left or right
 Navigation pauses while you type in the simulator's number fields, so editing values never changes the slide.
 
 <br/>
-✦ Requirements
+Requirements
 Any modern web browser.
 Internet access on first load, because the deck fetches:
 Tailwind CSS (Play CDN)
@@ -98,7 +98,7 @@ Google Fonts: Plus Jakarta Sans and JetBrains Mono
 Venue Wi-Fi can be unreliable. Open the deck once beforehand to confirm that styling and icons load.
 
 <br/>
-✦ Project Structure
+Project Structure
 text
 ML-Presentation/
 ├── assets/
@@ -106,7 +106,7 @@ ML-Presentation/
 ├── interactive_ml_presentation.html   # The whole presentation (HTML + CSS + JS)
 └── README.md
 <br/>
-✦ Customize
+Customize
 To change	Where
 Slide text and speaker notes	The slides array in the <script> block (title, subtitle, notes, proTip).
 Metric definitions	The metrics data object used by slide 03 (formula parts and use cases).
