@@ -19,14 +19,18 @@ The Seven Slides
 07	Key Takeaways & Discussion	A closing summary, discussion prompts and the quiz QR code.
 <br/>
  The Math
-text
+
 Accuracy   =  (TP + TN) / (TP + TN + FP + FN)
+
 
 Precision  =  TP / (TP + FP)
 
+
 Recall     =  TP / (TP + FN)
 
+
 F1-Score   =  (2 × Precision × Recall) / (Precision + Recall)
+
 
 Metric	The question it answers	Reach for it when
 Accuracy	Of all predictions, how many were correct?	Classes are balanced and every error costs about the same.
@@ -73,46 +77,7 @@ Publish it with GitHub Pages (optional)
 Rename the file to index.html.
 Go to Settings → Pages, choose the main branch and the root folder, then save.
 Your deck goes live at https://maiven123.github.io/ML-Presentation/.
-<br/>
-Controls
 
-A clean stage with no header or footer, so navigation is by keyboard or touch.
-
-Action	Shortcut
-Next slide	<kbd>→</kbd> or <kbd>Space</kbd>
-Previous slide	<kbd>←</kbd>
-First / last slide	<kbd>Home</kbd> / <kbd>End</kbd>
-Speaker notes	<kbd>N</kbd>
-Fullscreen	<kbd>F</kbd>
-Touch screens	Swipe left or right
-
-Navigation pauses while you type in the simulator's number fields, so editing values never changes the slide.
-
-<br/>
-Requirements
-Any modern web browser.
-Internet access on first load, because the deck fetches:
-Tailwind CSS (Play CDN)
-Lucide icons via unpkg
-Google Fonts: Plus Jakarta Sans and JetBrains Mono
-
-Venue Wi-Fi can be unreliable. Open the deck once beforehand to confirm that styling and icons load.
-
-<br/>
-Project Structure
-text
-ML-Presentation/
-├── assets/
-│   └── banner.svg                     # README banner
-├── interactive_ml_presentation.html   # The whole presentation (HTML + CSS + JS)
-└── README.md
-<br/>
-Customize
-To change	Where
-Slide text and speaker notes	The slides array in the <script> block (title, subtitle, notes, proTip).
-Metric definitions	The metrics data object used by slide 03 (formula parts and use cases).
-Quiz QR code	Replace the value of USER_QR_IMAGE with your own PNG as a base64 data URI. Keep a white margin around the code so it scans reliably.
-Colours and fonts	The Tailwind classes and the Google Fonts link in <head>.
 <br/> <div align="center">
 
 Crafted by Maiven Shenod
