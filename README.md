@@ -27,6 +27,7 @@ Precision  =  TP / (TP + FP)
 Recall     =  TP / (TP + FN)
 
 F1-Score   =  (2 × Precision × Recall) / (Precision + Recall)
+
 Metric	The question it answers	Reach for it when
 Accuracy	Of all predictions, how many were correct?	Classes are balanced and every error costs about the same.
 Precision	When the model says "positive", how often is it right?	False alarms are expensive (spam filters, automated trading).
