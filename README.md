@@ -114,8 +114,7 @@ Quiz QR code	Replace the value of USER_QR_IMAGE with your own PNG as a base64 da
 Colours and fonts	The Tailwind classes and the Google Fonts link in <head>.
 <br/> <div align="center">
 
-Crafted by Maiven123
+Crafted by Maiven Shenod
 
-No license has been specified yet. To let others reuse this work, add a LICENSE file such as MIT.
 
 </div>
